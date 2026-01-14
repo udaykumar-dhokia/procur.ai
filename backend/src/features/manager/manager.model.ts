@@ -14,6 +14,10 @@ const managerSchema = new mongoose.Schema(
       index: true,
       trim: true,
     },
+    mobile: {
+      type: String,
+      trim: true,
+    },
     companyId: {
       type: mongoose.Types.ObjectId,
       ref: "Company",

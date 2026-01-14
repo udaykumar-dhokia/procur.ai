@@ -6,6 +6,7 @@ import cors from "cors";
 import connectDB from "./config/db.config.js";
 import vendorRoutes from "./features/vendor/vendor.routes.js";
 import companyRoutes from "./features/company/company.routes.js";
+import managerRoutes from "./features/manager/manager.routes.js";
 
 const PORT = process.env.PORT || 3000;
 
@@ -21,6 +22,7 @@ app.use(
 
 app.use("/api/v1/vendor", vendorRoutes);
 app.use("/api/v1/company", companyRoutes);
+app.use("/api/v1/manager", managerRoutes);
 
 server.listen(PORT, () => {
   console.log(`🟢 Server is listening at ${PORT}`);
