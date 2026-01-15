@@ -9,6 +9,7 @@ import companyRoutes from "./features/company/company.routes.js";
 import managerRoutes from "./features/manager/manager.routes.js";
 import rfpRoutes from "./features/rfp/rfp.routes.js";
 import gmailRoutes from "./features/gmail/gmail.routes.js";
+import startGmailWatch from "./config/gmail.config.js";
 
 const PORT = process.env.PORT || 3000;
 
@@ -25,25 +26,11 @@ app.use(
 app.use("/api/v1/vendor", vendorRoutes);
 app.use("/api/v1/company", companyRoutes);
 app.use("/api/v1/manager", managerRoutes);
-app.use("/api/v1/manager", managerRoutes);
 app.use("/api/v1/rfp", rfpRoutes);
 app.use("/api/v1/gmail", gmailRoutes);
 
 server.listen(PORT, async () => {
   console.log(`🟢 Server is listening at ${PORT}`);
   connectDB();
-
-  const topicName = process.env.GMAIL_TOPIC_NAME;
-  if (topicName) {
-    try {
-      const { gmailService } = await import("./services/gmail.service.js");
-      await gmailService.watch(topicName);
-    } catch (err) {
-      console.error("Failed to start Gmail watch:", err.message);
-    }
-  } else {
-    console.warn(
-      "GMAIL_TOPIC_NAME not set. Push notifications will not be active."
-    );
-  }
+  startGmailWatch();
 });
