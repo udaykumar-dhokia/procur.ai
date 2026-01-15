@@ -3,6 +3,7 @@ import rfpController from "./rfp.controller.js";
 
 const router = express.Router();
 
-router.get("/", rfpController.create);
+router.post("/", rfpController.create);
+router.post("/:rfpId/send", rfpController.sendRFPToVendors);
 
 export default router;

@@ -35,12 +35,22 @@ Your responsibilities:
               message: "Required quantity",
             }),
 
-            specifications: z.array(
-              z.object({
-                key: z.string(),
-                value: z.string(),
-              })
-            ),
+            specifications: z
+              .array(
+                z.object({
+                  key: z.string().min(1),
+                  value: z.string().min(1),
+                })
+              )
+              .transform((arr) => {
+                return arr.reduce<Record<string, string>>(
+                  (acc, { key, value }) => {
+                    acc[key] = value;
+                    return acc;
+                  },
+                  {}
+                );
+              }),
           })
         )
         .describe("List of requested items"),

@@ -3,22 +3,19 @@ import sgMail from "@sendgrid/mail";
 
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
-async function sendMail(to: string, subject: string, body: string) {
+async function sendMail(recipients: string[], subject: string, body: string) {
   const mail = {
-    to: to,
     from: "udaykumardhokia@gmail.com",
-    subject: subject,
+    subject,
     html: body,
+    personalizations: [
+      {
+        to: recipients.map((email) => ({ email })),
+      },
+    ],
   };
 
-  await sgMail
-    .send(mail)
-    .then(() => {
-      console.log(`Mail sent to ${to}`);
-    })
-    .catch((error) => {
-      console.error(error);
-    });
+  await sgMail.send(mail);
 }
 
 export default sendMail;

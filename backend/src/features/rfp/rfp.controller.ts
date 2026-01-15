@@ -1,26 +1,74 @@
+import { Request, Response } from "express";
 import createRFPAgent from "../../agents/rfp.agent.js";
 import httpStatus from "../../utils/httpStatus.js";
+import rfpDao from "./rfp.dao.js";
+import { customAlphabet } from "nanoid";
+import emailAgent from "../../agents/email.agent.js";
+
+const customNanoId = customAlphabet("0123456789", 4);
 
 const rfpController = {
-  create: async (req, res) => {
+  /**
+   * Create a new RFP
+   *
+   * @route   POST /rfp
+   * @access  Private
+   * @returns {Object} JSON response with created RFP
+   */
+  create: async (req: Request, res: Response) => {
+    const { managerId, prompt } = req.body;
     try {
       const { output } = await createRFPAgent.generate({
-        prompt: `
-        We are requesting proposals for the supply of 10 Computers with 16 GB RAM, 512 GB SSD, and 24-27 inch displays, along with 10 monitors featuring 27-inch QHD IPS screens.
+        prompt,
+      });
 
-        The total budget is INR 4,00,000, and delivery must be completed within 30 days.
+      const rfpId = customNanoId();
+      const rfp = await rfpDao.create({
+        rfpId: `RFP-${rfpId}`,
+        rawInput: prompt,
+        managerId,
+        ...output,
+      });
 
-        Payment terms are Net 30, and all products must include a minimum 1-year warranty.
+      return res.status(httpStatus.CREATED).json({
+        rfp,
+      });
+    } catch (error) {
+      console.log(error);
+      return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
+        message: "Internal Server Error",
+      });
+    }
+  },
 
-        Vendors should include delivery timelines and warranty details in their proposals.
-        `,
+  /**
+   * Send RFP to vendors
+   *
+   * @route   POST /rfp/:rfpId/send
+   * @access  Private
+   * @returns {Object} JSON response with sent RFP
+   */
+  sendRFPToVendors: async (req: Request, res: Response) => {
+    const { rfpId } = req.params;
+    const { vendors } = req.body;
+    try {
+      const rfp = await rfpDao.findById(rfpId);
+      if (!rfp) {
+        return res.status(httpStatus.NOT_FOUND).json({
+          message: "RFP not found",
+        });
+      }
+
+      const { output } = await emailAgent.generate({
+        prompt: `Receipients: ${vendors.join(", ")}. RFP: ${JSON.stringify(
+          rfp
+        )}`,
       });
 
       return res.status(httpStatus.OK).json({
         output,
       });
     } catch (error) {
-      console.log(error);
       return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
         message: "Internal Server Error",
       });
